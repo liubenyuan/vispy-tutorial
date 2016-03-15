@@ -2,6 +2,25 @@
 
 *tutorials about vispy*
 
+## About
+
+`vispy` is a high performance 2D/3D visualization library. It provides low-level and high-level interfaces that levage the power of GPU for high performance plotting.
+
+### How to install `vispy`
+
+Install globally
+
+```
+$ cd /path/to/vispy
+$ python setup.py install
+```
+
+Install locally (recommended for using cutting-edge features of `vispy`)
+
+```
+export PYTHONPATH=/path/to/vispy/vispy
+```
+
 ## Introduction
 
 This tutorial focus on two main blocks of `vispy`:
