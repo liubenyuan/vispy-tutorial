@@ -1,4 +1,4 @@
-# pylint: disable=no-member
+# pylint: disable=invalid-name, no-member, unused-argument
 """ passing varyings to fragment """
 import numpy as np
 from vispy import app, gloo
@@ -29,6 +29,7 @@ void main()
 
 
 class Canvas(app.Canvas):
+    """ build canvas class for this demo """
 
     def __init__(self):
         app.Canvas.__init__(self, size=(512, 512), title='scaling quad',
@@ -59,15 +60,19 @@ class Canvas(app.Canvas):
         # show the canvas
         self.show()
 
-    def on_resize(self, event):
+    @staticmethod
+    def on_resize(event):
+        """ canvas resize callback """
         gloo.set_viewport(0, 0, *event.physical_size)
 
     def on_draw(self, event):
+        """ canvas update callback """
         gloo.set_clear_color('white')
         gloo.clear()
         self.program.draw('triangle_strip')
 
     def on_timer(self, event):
+        """ canvas time-out callback """
         self.clock += 0.01 * np.pi
         self.program['scale'] = 0.5 + 0.5 * np.cos(self.clock)
         self.update()

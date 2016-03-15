@@ -1,11 +1,13 @@
-# learning vispy
-# http://ipython-books.github.io/featured-06/
+# pylint: disable=invalid-name, no-member, unused-argument
+""" basic demo using shaders
+http://ipython-books.github.io/featured-06/
+"""
 
 import numpy as np
 from vispy import app, gloo
 
 # In order to display a window, we need to create a Canvas.
-c = app.Canvas(keys='interactive')
+c = app.Canvas(size=(800, 400), keys='interactive')
 
 # When using vispy.gloo, we need to write shaders.
 # These programs, written in a C-like language called GLSL,
@@ -44,21 +46,26 @@ print(data.shape)
 program['a_position'] = data.astype('float32')
 
 
-# We create a callback function called when the window is being resized.
-# Updating the OpenGL viewport lets us ensure that
-# Vispy uses the entire canvas.
 @c.connect
 def on_resize(event):
-    gloo.set_viewport(0, 0, *event.size)
+    """
+    We create a callback function called when the window is being resized.
+    Updating the OpenGL viewport lets us ensure that
+    Vispy uses the entire canvas.
+    """
+    gloo.set_viewport(0, 0, *event.physical_size)
 
 
-# We create a callback function called when the canvas needs to be refreshed.
-# This on_draw function renders the entire scene.
 @c.connect
 def on_draw(event):
+    """
+    We create a callback function called when the canvas needs to be refreshed
+    This on_draw function renders the entire scene.
+    """
     # First, we clear the window in white
     # (it is necessary to do that at every frame)
-    gloo.clear((1.0, 1.0, 1.0, 1.0))
+    gloo.set_clear_color((1.0, 1.0, 1.0, 1.0))
+    gloo.clear()
     program.draw('line_strip')
 
 # Finally, we show the canvas and we run the application.
