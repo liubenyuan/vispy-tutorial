@@ -4,13 +4,14 @@
 
 ### 1.1 Shaders
 
-The GLSL code for `vispy.gloo` is mainly build on top of two shaders : `vertex` shader and `fragment` shader.
+The GLSL code of `vispy.gloo` is built on top of two shaders : `vertex` shader and `fragment` shader.
 
 ![gl-pipeline.png](figs/gl-pipeline.png)
 
 *(figures copied from [glumpy.github.io](https://glumpy.github.io/_images/gl-pipeline.png))*
 
 Shaders are pieces of program (using a C-like language) that are build onto the GPU and executed during the rendering pipeline.
+The vertex shader is executed for each vertex that is given to the rendering pipeline (we’ll see what does that mean exactly later) and the fragment shader is executed on each fragment that is generated after the vertex stage.
 
 *(text copied from [Modern OpenGL tutorial (python)](http://www.labri.fr/perso/nrougier/teaching/opengl/))*
 
@@ -37,7 +38,7 @@ There are three types of inputs and outputs in a shader: attributes, uniforms an
 *(text copied and modified from [GLSL: An Introduction](http://nehe.gamedev.net/article/glsl_an_introduction/25007/))*
 
  - `attribute` : attributes are **only available in vertex** shader and they are input values which change every vertex, for example the vertex position or normals. Attributes are **read-only**.
- - `uniform` : values which do not change during a rendering, for example the light position or the light color. Uniforms are available in **both vertex and fragment** shaders. Uniforms are **read-only**.
+ - `uniform` : values which do not change during a rendering, for example the light position or the light color. Uniforms are available in **both vertex and fragment** shaders. Uniforms are **read-only** from shaders.
  - `varying` : varyings are used for passing data from a vertex shader to a fragment shader. Varyings are (perspective correct) interpolated across the primitive. Varyings are **read-only in fragment** shader but are **read and writeable in vertex** shader (but be careful, reading a varying type before writing to it will return an undefined value). If you want to use varyings you have to **declare the same varying** in your vertex shader and in your fragment shader.
 
 ### 1.4 Built-in types
