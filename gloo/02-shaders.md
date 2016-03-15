@@ -1,32 +1,32 @@
 # 02-shaders
 
-Nice tutorial [Modern OpenGL tutorial (python)](http://www.labri.fr/perso/nrougier/teaching/opengl/)
-
 ## 1. Introduction
 
 ### 1.1 Shaders
 
+The GLSL code for `vispy.gloo` is mainly build on top of two shaders : `vertex` shader and `fragment` shader.
+
 ![gl-pipeline.png](figs/gl-pipeline.png)
 
-(figures copied from [glumpy.github.io](https://glumpy.github.io/_images/gl-pipeline.png))
+*(figures copied from [glumpy.github.io](https://glumpy.github.io/_images/gl-pipeline.png))*
 
 Shaders are pieces of program (using a C-like language) that are build onto the GPU and executed during the rendering pipeline.
 
-(text copied from [Modern OpenGL tutorial (python)](http://www.labri.fr/perso/nrougier/teaching/opengl/))
+*(text copied from [Modern OpenGL tutorial (python)](http://www.labri.fr/perso/nrougier/teaching/opengl/))*
 
 To program shaders, we needs to write two programs,
 
- - `vertex`: It outputs the position of a vertex, `gl_Position`, Which is basically a 4-tuple, for example `vec4(x, y, z, t)`. If you are going to program only in 2D, then `z` may be ommited. `t` may be set to `1.0`.
- - `fragment`: It outputs the color of the fragment, `gl_FragColor`, which is also a 4-tuple, with `vec4(r, g, b, a)`. `rgb` represents the color palette, `a` controls the alpha of this fragment.
+ 1. `vertex`: It outputs the position of a vertex, `gl_Position`, Which is basically a 4-tuple, for example `vec4(x, y, z, t)`. If you are going to program only in 2D, then `z` may be ommited. `t` may be set to `1.0`.
+ 2. `fragment`: It outputs the color of the fragment, `gl_FragColor`, which is also a 4-tuple, with `vec4(r, g, b, a)`. `rgb` represents the color palette, `a` controls the alpha of this fragment.
 
 ### 1.2 Data types of GLSL
 
-`vec4` is a special data type for GLSL (The OpenGL Shading Language). In GLSL, some basic data types are (see [Data Type of GLSL](https://www.opengl.org/wiki/Data_Type_(GLSL)):
+`vec4` is a special data type for GLSL (The OpenGL Shading Language). In GLSL, some other basic data types are (see [Data Type of GLSL](https://www.opengl.org/wiki/Data_Type_(GLSL)):
 
  - `bool`, `int`, `uint`, `float`: typical data types for C.
  - `vecn`: a vector of single-precision floating-point numbers, where `n` could be 2, 3, 4.
- - `matn`: A matrix with n columns and n rows. Shorthand for matnxn
- - `matnxm`: A matrix with n columns and m rows. OpenGL uses column-major matrices, which is standard for mathematics users. Example: mat3x4.
+ - `matn`: A matrix with n columns and n rows, shorthand for matnxn
+ - `matnxm`: A matrix with n columns and m rows. OpenGL uses **column-major** matrices, which is standard for mathematics users. Example: mat3x4.
 
 **Note:** GLSL stores data in colume first order.
 
@@ -34,7 +34,7 @@ To program shaders, we needs to write two programs,
 
 There are three types of inputs and outputs in a shader: attributes, uniforms and varyings.
 
-(text copied and modified from [GLSL: An Introduction](http://nehe.gamedev.net/article/glsl_an_introduction/25007/))
+*(text copied and modified from [GLSL: An Introduction](http://nehe.gamedev.net/article/glsl_an_introduction/25007/))*
 
  - `attribute` : attributes are **only available in vertex** shader and they are input values which change every vertex, for example the vertex position or normals. Attributes are **read-only**.
  - `uniform` : values which do not change during a rendering, for example the light position or the light color. Uniforms are available in **both vertex and fragment** shaders. Uniforms are **read-only**.
@@ -104,8 +104,70 @@ vec3 product = my_vec1 * my_vec2;  // Will Return This Vector: (5.0, 3.0, 0.0)
    - `dot`: a simple dot product
    - `cross`: a simple cross product
 
-## 2. Code
+## 2. Step-by-step
 
-## 3. Step-by-step
+Nice tutorial from [Modern OpenGL tutorial (python)](http://www.labri.fr/perso/nrougier/teaching/opengl/)
+
+For example, we are going to plot a 2D data, the `position` of each data point can be specified by a `vec2` **vertex**, and the plot can be rendered using **fragment** with a fixed color.
+
+The vertex can be programmed as,
+```
+vertex = """
+attribute vec2 a_position;
+void main(void)
+{
+    gl_Position = vec4(a_position, 0.0, 1.0);
+}
+"""
+```
+where `a_position` is a `vec2` attribute that is used as input for the position of vertex.
+
+The fragment can be programmed as,
+```
+fragment = """
+void main()
+{
+    gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
+}
+"""
+```
+
+We build the pipeline using `gloo.Program`,
+```
+program = gloo.Program(vert=vertex, frag=fragment)
+```
+
+2D test data can be conveniently generated using `numpy`,
+```
+# generate Nx2 test data
+N = 1000
+data = np.c_[
+    np.linspace(-1, 1, N),
+    np.random.uniform(-0.5, +0.5, N)]
+```
+The `a_position` attibutes can be assigned using,
+```
+program['a_position'] = data.astype('float32')
+```
+
+**But, how could we draw (render) all the vertex?**
+
+GLSL provides with some basic drawing primitives,
+
+![gl-primitivies](figs/gl-primitives.png)
+
+Here, `line_stripe` can be used for 2D plotting.
+```
+@c.connect
+def on_draw(event):
+    gloo.clear((1, 1, 1, 1))
+    program.draw('line_strip')
+```
+
+That's all!
+
+## 3. Code
+
+[02-plot.py](examples/02-plot.py)
 
 ## 4. Note

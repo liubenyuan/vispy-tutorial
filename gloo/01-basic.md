@@ -8,7 +8,7 @@ We will create a bare minimal window using gloo. This example is copied from the
 
 ## 2. The code
 
-[01-basic.py](example/01-basic.py)
+[01-basic.py](examples/01-basic.py)
 
 ## 3. Step-by-step
 
