@@ -73,7 +73,7 @@ There are some built-in types which are used for shader output (which is especia
 
  - GLSL is 100% type safe. You are not allowed to assign an integer to a float without casting **(by constructor)**:
 ```
-float my_float = 1;         // Wont Work! 1 Is An Integer!
+float my_float = 1;         // Wont Work! 1 Is An Integer!
 float my_new_float = 1.0;   // Will Work!
 ```
 
@@ -171,3 +171,4 @@ That's all!
 [02-plot.py](examples/02-plot.py)
 
 ## 4. Note
+
