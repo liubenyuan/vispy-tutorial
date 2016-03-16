@@ -35,10 +35,7 @@ class Canvas(app.Canvas):
         app.Canvas.__init__(self, size=(512, 512), title='scaling quad',
                             keys='interactive')
 
-        # bind a timer
-        self.timer = app.Timer('auto', self.on_timer)
-
-        # with 4 vertices
+        # program with 4 vertices
         program = gloo.Program(vert=vertex, frag=fragment, count=4)
 
         # bind data
@@ -53,7 +50,8 @@ class Canvas(app.Canvas):
         # set viewport
         gloo.set_viewport(0, 0, *self.physical_size)
 
-        # initialize timer
+        # bind a timer
+        self.timer = app.Timer('auto', self.on_timer)
         self.clock = 0.0
         self.timer.start()
 
