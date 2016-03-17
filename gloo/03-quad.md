@@ -33,6 +33,7 @@ void main()
 }
 """
 ```
+
 **Note:** The colors are **interpolation** of the vertex when rendering. This interpolation is made using **distance** of the fragment to each individual vertex.
 
 ## 2. Step-by-step
