@@ -4,7 +4,7 @@
 
 We will create a bare minimal window using gloo. This example is copied from the main `vispy` repository.
 
-[Getting started with Vispy](http://ipython-books.github.io/featured-06/) is a good way to start!
+Reference : [Getting started with Vispy](http://ipython-books.github.io/featured-06/) is a good way to start!
 
 ## 2. The code
 
@@ -24,4 +24,4 @@ c.show()
 app.run()
 ```
 
-## 4. Note
+## 4. Exercise

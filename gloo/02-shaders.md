@@ -17,8 +17,16 @@ The vertex shader is executed for each vertex that is given to the rendering pip
 
 To program shaders, we needs to write two programs,
 
- 1. `vertex`: It outputs the position of a vertex, `gl_Position`, Which is basically a 4-tuple, for example `vec4(x, y, z, t)`. If you are going to program only in 2D, then `z` may be ommited. `t` may be set to `1.0`.
+ 1. `vertex`: It outputs the position of a vertex, `gl_Position`, Which is basically a 4-tuple, for example `vec4(x, y, z, w)`. If you are going to program only in 2D, then `z` may be ommited.
  2. `fragment`: It outputs the color of the fragment, `gl_FragColor`, which is also a 4-tuple, with `vec4(r, g, b, a)`. `rgb` represents the color palette, `a` controls the alpha of this fragment.
+
+**Note:** W is the fourth coordinate of a three dimensional vertex; This vertex is called homogeneous vertex coordinate. **It can be treated as a scaling parameter for matrix transformations**. In few words, the W component is a factor which divide the other vector components. When W is 1.0, the homogeneous vertex coordinates are "normalized". To compare two vertices, you should normalize the W value to 1.0.
+
+**Note:** A typical projection does `w_out = -z_in`. That's why people sometimes call this the **perspective divide**.
+
+ - Think to the vertex (1,1,1,1). Now increase the W value (w > 1.0). The normalized position is **scaling!** and it is going to the origin.
+ - Think to the vertex (1,1,1,1). Now decrease the W value (W < 1.0). The normalized position is going to an infinite point.
+ - If W is exactly 0, the vector does not behave as a **position** but as a **direction** (think directional light); i.e., it represents all the lines parallel to a given line.
 
 ### 1.2 Data types of GLSL
 
@@ -112,7 +120,7 @@ Nice tutorial from [Modern OpenGL tutorial (python)](http://www.labri.fr/perso/n
 For example, we are going to plot a 2D data, the `position` of each data point can be specified by a `vec2` **vertex**, and the plot can be rendered using **fragment** with a fixed color.
 
 The vertex can be programmed as,
-```
+```python
 vertex = """
 attribute vec2 a_position;
 void main(void)
@@ -124,7 +132,7 @@ void main(void)
 where `a_position` is a `vec2` attribute that is used as input for the position of vertex.
 
 The fragment can be programmed as,
-```
+```python
 fragment = """
 void main()
 {
@@ -134,12 +142,12 @@ void main()
 ```
 
 We build the pipeline using `gloo.Program`,
-```
+```python
 program = gloo.Program(vert=vertex, frag=fragment)
 ```
 
 2D test data can be conveniently generated using `numpy`,
-```
+```python
 # generate Nx2 test data
 N = 1000
 data = np.c_[
@@ -147,7 +155,7 @@ data = np.c_[
     np.random.uniform(-0.5, +0.5, N)]
 ```
 The `a_position` attibutes can be assigned using,
-```
+```python
 program['a_position'] = data.astype('float32')
 ```
 
@@ -158,7 +166,7 @@ GLSL provides with some basic drawing primitives,
 ![gl-primitivies](figs/gl-primitives.png)
 
 Here, `line_stripe` can be used for 2D plotting.
-```
+```python
 @c.connect
 def on_draw(event):
     gloo.clear((1, 1, 1, 1))
@@ -171,5 +179,6 @@ That's all!
 
 [02-plot.py](examples/02-plot.py)
 
-## 4. Note
+## 4. Exercise
 
+There are many drawing (rendering) mode in the shaders, as illustrated in the graph. Pick one and modify your code, for example, what would `points` be ? Plot your results and find out why.
