@@ -105,7 +105,7 @@ vec3 my_vec2 = vec3(1.0, 3.0, 4.0);
 vec3 product = my_vec1 * my_vec2;  // Will Return This Vector: (5.0, 3.0, 0.0)
 ```
 
- - Vector with matrix multiplication is also available.
+ - Vector with matrix multiplication is also available (**OpenGL uses column-major ordering**, But, **Python uses row-major ordering**!)
    - `mat * vec` will treat the vector as a column-vector (OpenGL standard)
    - `vec * mat` will treat the vector as a row-vector (DirectX standard)
 
