@@ -19,6 +19,8 @@ void main()
 # The other shader we need to create is the fragment shader.
 # It lets us control the pixels' color.
 fragment = """
+#version 120
+
 void main()
 {
     gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
@@ -44,7 +46,9 @@ class Canvas(app.Canvas):
             view depth
 
         """
-        app.Canvas.__init__(self, size=(800, 400), title='plot3d',
+        app.Canvas.__init__(self,
+                            size=(800, 400),
+                            title='plot3d',
                             keys='interactive')
 
         # build shader program
@@ -55,7 +59,7 @@ class Canvas(app.Canvas):
         model = np.eye(4, dtype=np.float32)
         projection = np.eye(4, dtype=np.float32)
 
-        view = translate((0, 0, -z))
+        # update program
         program['u_model'] = model
         program['u_view'] = view
         program['u_projection'] = projection
@@ -65,11 +69,15 @@ class Canvas(app.Canvas):
         self.program = program
         self.theta = theta
         self.phi = phi
+        self.z = z
 
         # config
         gloo.set_viewport(0, 0, *self.physical_size)
         gloo.set_clear_color('white')
         gloo.set_state('translucent')
+
+        # config your lines
+        gloo.set_line_width(2.0)
 
         # show the canvas
         self.show()
@@ -87,6 +95,7 @@ class Canvas(app.Canvas):
     def on_draw(self, event):
         """ refresh canvas """
         gloo.clear()
+        view = translate((0, 0, -self.z))
         model = np.dot(rotate(self.theta, (0, 1, 0)),
                        rotate(self.phi, (0, 0, 1)))
         # note the convention is, theta is applied first and then phi
@@ -94,6 +103,7 @@ class Canvas(app.Canvas):
         # python is row-major and opengl is column major,
         # so the rotate function transposes the output.
         self.program['u_model'] = model
+        self.program['u_view'] = view
         self.program.draw('line_strip')
 
 # 1000x3

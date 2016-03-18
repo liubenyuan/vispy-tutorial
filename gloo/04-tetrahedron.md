@@ -170,13 +170,14 @@ gloo.set_polygon_offset(1.0, 1.0)
 **References:**
 
  1. About `polygon_offset`. [Meaning and usage of the factor parameter in glPolygonOffset](http://stackoverflow.com/questions/13431174/meaning-and-usage-of-the-factor-parameter-in-glpolygonoffset)
- 2. About `glPARAMETERS`. [Chapter 6. Blending, Antialiasing, Fog, and Polygon Offset](http://www.glprogramming.com/red/chapter06.html). **Read the red book on opengl.**
+ 2. About the parameters of OpenGL. [Chapter 6. Blending, Antialiasing, Fog, and Polygon Offset](http://www.glprogramming.com/red/chapter06.html). **Read the red book on opengl.**
 
-Note, that there is no 100% safe transparency solutions, you may refer to,
+**Note:** there is no 100% safe transparency solution, you may refer to,
 
- 1. Depth Peeling, [Order Independent Transparency with Dual Depth Peeling](http://developer.download.nvidia.com/SDK/10/opengl/src/dual_depth_peeling/doc/DualDepthPeeling.pdf)
+ 1. **Depth Peeling**, [Order Independent Transparency with Dual Depth Peeling](http://developer.download.nvidia.com/SDK/10/opengl/src/dual_depth_peeling/doc/DualDepthPeeling.pdf)
  2. OpenGL subscribe, [Order Independent Transparency](http://www.openglsuperbible.com/2013/08/20/is-order-independent-transparency-really-necessary/)
  3. Vispy issue 1076, [cutting volume data](https://github.com/vispy/vispy/issues/1076)
+ 4. **Vispy Wiki**, [Tech. Transparency](https://github.com/vispy/vispy/wiki/Tech.-Transparency)
 
 ### 2.5 run the demo
 
