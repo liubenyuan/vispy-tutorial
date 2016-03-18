@@ -12,14 +12,16 @@
 
 Install **globally**
 
-```
+```bash
 $ cd /path/to/vispy
 $ python setup.py install
 ```
 
 Install **locally** (recommended for using cutting-edge features of `vispy`)
 
-```
+**Warning:** set `PYTHONPATH` will result `numpy` import error.
+
+```bash
 export PYTHONPATH=/path/to/vispy/vispy
 ```
 
