@@ -54,9 +54,9 @@ class Canvas(app.Canvas):
         # triangles specified by connecting matrix,
         # it can also be initialized using itertools
         I = np.array([(0, 1, 2),
-                      (0, 1, 3),
+                      (0, 3, 1),
                       (0, 2, 3),
-                      (1, 2, 3)], dtype=np.uint32)
+                      (1, 3, 2)], dtype=np.uint32)
         # edges, used for drawing outline
         E = np.array([(0, 1), (1, 2), (2, 0), (1, 3), (2, 3), (0, 3)],
                      dtype=np.uint32)
@@ -112,12 +112,14 @@ class Canvas(app.Canvas):
         gloo.clear()
 
         # Filled cube
-        gloo.set_state(blend=True, depth_test=True, polygon_offset_fill=True)
-        self.program['u_color'] = [1.0, 1.0, 1.0, 0.6]
+        gloo.set_state(blend=True, depth_test=False,
+                       polygon_offset_fill=True)
+        self.program['u_color'] = [1.0, 1.0, 1.0, 0.8]
         self.program.draw('triangles', self.I)
 
         # draw outline
-        gloo.set_state(blend=False, depth_test=False, polygon_offset_fill=True)
+        gloo.set_state(blend=False, depth_test=False,
+                       polygon_offset_fill=True)
         self.program['u_color'] = [0.0, 0.0, 0.0, 1.0]
         self.program.draw('lines', self.E)
 

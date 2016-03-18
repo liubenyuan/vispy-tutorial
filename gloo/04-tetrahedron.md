@@ -1,4 +1,4 @@
-# 04-3D
+# 04-Tetrahedron
 
 ## 1. Introduction
 
@@ -55,7 +55,13 @@ void main()
 
 ### 2.1 structural meshes
 
-In this example, we will rendering a rotating tetrahedron (or pyramid). A tetrahedron sonsists of 4 vertices and 4 triangles. Traditionally, in order to render 4 triangles, we need to specify 12 vertices. However, this procedure can be simplified by simply providing the structure or the connectting method of these triangles.
+In this example, we will rendering a rotating tetrahedron (or pyramid). A tetrahedron sonsists of 4 vertices and 4 triangles. Traditionally, in order to render 4 triangles, we need to specify 12 vertices. However, this procedure can be simplified by simply providing the **structure** or the **connectivities** of these triangles.
+
+![tetrahedron.png](figs/tetrahedron.png)
+
+For example, the face outwards can be described using `(0, 1, 3)` (**Note:** that the triangles are usually numbered in a counter-clockwise order, this is a MUST for FEM/CFD applications), the edge can be specified as `(3, 2)`, etc.
+
+After building these indicies, we must convert them to `gloo.IndexBuffer` before passing them to `draw`. Triangles indices are used to draw `triangles` or `triangle stripe`, while Edges indices are used to draw the outline of 3D shape.
 
 ```python
 # bind data
@@ -82,15 +88,15 @@ C = np.array([(1, 0, 0, 1),
 
 where `V` is the positions for vertices, `I` is the connectivity of triangles, `C` is colors for vertices, `E` is the edges.
 
-**Note:** `I` and `E` must be build as a `IndexBuffer` using,
+**Note:** `I` and `E` must be converted to `IndexBuffer` using,
 ```python
 self.I = gloo.IndexBuffer(I)
 self.E = gloo.IndexBuffer(E)
 ```
 
-`V` and `C` can be binded using traditional methods.
+`V` and `C` can be binded using traditional methods, `I` and `E` are passed to `draw` during rendering.
 
-### 2.2 transformation matrix
+### 2.2 the transformation matrix
 
 The transformation matrices can be generated using
 ```python
@@ -103,7 +109,7 @@ from vispy.util.transforms import translate, perspective, rotate
 
 The functions are,
 
- - `rotate(angle, axis)` rotates a angle (in degrees) centered at axis,
+ - `rotate(angle, axis)` rotates a angle (in degrees) centered at axis (vector),
  - `translate(offset)` places the camera,
  - `perspective(fovy, aspect, znear, zfar)` performs the perspective projection.
 
@@ -121,7 +127,7 @@ modern graphics libraries. In `GDI+`, composite transformations are built from l
 
 ### 2.3 (important) the order of composite transformations
 
-Take rotation for example,
+Take rotation for example. Two rotations can be combined as one be pre-multiplication of these two matrices,
 
 ```python
 a = rotate(theta, (0, 1, 0))
@@ -129,18 +135,18 @@ b = rotate(phi, (0, 0, 1))
 c = np.dot(a, b)
 ```
 
-If we use `c` as the `model` transformation matrix, then it will be applied on vertices firstly rotate `theta` degrees around `(0, 1, 0)` and then `phi` degrees around `(0, 0, 1)`. Pretty counter-intuitive ?
+If we use `c` as the `model` transformation matrix, then it will be applied on vertices via firstly rotate `theta` degrees around `(0, 1, 0)` and then `phi` degrees around `(0, 0, 1)`. Pretty counter-intuitive ?
 
 **Explaination:**
 
-The reason behind this is that (in tutorial 02-shaders), **Python is row-major** while ** OpenGL is column major**. In `vispy.util.transforms`, the function `rotate` transpose the output of the generating matrix (*see the code!*). So the matrix `c` sent to the shader is actually `a.Tb.T` or `(ba).T` rather than `(ab)`. Henceforth, `a` will be applied first and then `b`! Remember this convention (although it caused me a lot of confusions), as `vispy` may not change this (or need to) in future.
+The reason behind this is that (see in tutorial `02-shaders`), **Python is row-major** while ** OpenGL is column major**. In `vispy.util.transforms`, the function `rotate` transpose the output of the generating matrix (*see the code*). So the matrix `c` sent to the shader is actually `(a.Tb.T)` or `(ba).T` rather than `(ab)`. Henceforth, when multiply a vertex using `cv`, the rotation `a` will be applied first and then `b` ! Remember this convention (although it caused me a lot of confusions), as `vispy` may not change this (or need to) in future.
 
 **References:**
 
  1. **best:** [Confusion between C++ and OpenGL matrix order (row-major vs column-major)](http://stackoverflow.com/questions/17717600/confusion-between-c-and-opengl-matrix-order-row-major-vs-column-major)
- 1. **vispy:** [Vispy issue 507](https://github.com/vispy/vispy/issues/507)
- 1. **discussions:** [Column Vectors Vs. Row Vectors](http://steve.hollasch.net/cgindex/math/matrix/column-vec.html)
- 2. [Prototyping OpenGL applications with PyOpenGL](http://www.siafoo.net/article/58)
+ 2. **vispy:** [Vispy issue 507](https://github.com/vispy/vispy/issues/507)
+ 3. **discussions:** [Column Vectors Vs. Row Vectors](http://steve.hollasch.net/cgindex/math/matrix/column-vec.html)
+ 4. [Prototyping OpenGL applications with PyOpenGL](http://www.siafoo.net/article/58)
 
 ### 2.4 config OpenGL using `vispy.gloo`
 
@@ -161,21 +167,27 @@ gloo.set_state('translucent')
 gloo.set_polygon_offset(1.0, 1.0)
 ```
 
-**References:*
+**References:**
 
  1. About `polygon_offset`. [Meaning and usage of the factor parameter in glPolygonOffset](http://stackoverflow.com/questions/13431174/meaning-and-usage-of-the-factor-parameter-in-glpolygonoffset)
  2. About `glPARAMETERS`. [Chapter 6. Blending, Antialiasing, Fog, and Polygon Offset](http://www.glprogramming.com/red/chapter06.html). **Read the red book on opengl.**
 
+Note, that there is no 100% safe transparency solutions, you may refer to,
+
+ 1. Depth Peeling, [Order Independent Transparency with Dual Depth Peeling](http://developer.download.nvidia.com/SDK/10/opengl/src/dual_depth_peeling/doc/DualDepthPeeling.pdf)
+ 2. OpenGL subscribe, [Order Independent Transparency](http://www.openglsuperbible.com/2013/08/20/is-order-independent-transparency-really-necessary/)
+ 3. Vispy issue 1076, [cutting volume data](https://github.com/vispy/vispy/issues/1076)
+
 ### 2.5 run the demo
 
-Then, the tetrahedron can be drawed as,
+Then, the tetrahedron can be drawed as (we need 100% transparent tetrahedron, so `depth_test` is disabled),
 ```python
-gloo.set_state(blend=True, depth_test=True, polygon_offset_fill=True)
+gloo.set_state(blend=True, depth_test=False, polygon_offset_fill=True)
 self.program['u_color'] = [1.0, 1.0, 1.0, 1.0]
 self.program.draw('triangles', self.I)
 ```
 
-The lines (edges) can be drawed as,
+The lines (edges) can be drawed as (the lines need not to be transparent, so we disable `blend`),
 ```python
 gloo.set_state(blend=False, depth_test=False, polygon_offset_fill=True)
 self.program['u_color'] = [0.0, 0.0, 0.0, 1.0]
@@ -188,4 +200,5 @@ self.program.draw('triangles', self.E)
 
 ## 4. Exercises
 
-You may modify `blend`, `depth_test`, `polygon_offset_fill` to the demo.
+You may modify `blend`, `depth_test`, `polygon_offset_fill`, `cull_face` to the demo, see what is their functions.
+
