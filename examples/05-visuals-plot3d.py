@@ -2,6 +2,8 @@
 """ a simple visuals for 3D plot """
 
 import numpy as np
+import sys
+
 from vispy import app, gloo, visuals, scene
 
 # Define a simple vertex shader. We use $template variables as placeholders for
@@ -40,7 +42,7 @@ class Plot3DVisual(visuals.Visual):
         self.shared_program.frag['color'] = (1.0, 0.0, 0.0, 1.0)
 
         # config
-        self.set_gl_state('opaque', clear_color=(1, 1, 1, 1))
+        self.set_gl_state('opaque')
         self._draw_mode = 'line_strip'
 
     def _prepare_transforms(self, view):
@@ -77,4 +79,6 @@ z = np.linspace(-2, 2, N)
 p1 = Plot3D(x, y, z, parent=view.scene)
 
 # run
-app.run()
+if __name__ == '__main__':
+    if sys.flags.interactive != 1:
+        app.run()

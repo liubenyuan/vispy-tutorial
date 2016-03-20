@@ -5,11 +5,13 @@ from __future__ import absolute_import
 
 from itertools import combinations
 import numpy as np
+import sys
+
 from vispy import app, gloo, visuals, scene
 
 
 # build vertex shader for tetplot
-vertex_shader = """
+vert = """
 uniform vec4 u_color;
 attribute vec4 a_color;
 varying vec4 v_color;
@@ -25,7 +27,7 @@ void main()
 """
 
 # build fragment shader for tetplot
-fragment_shader = """
+frag = """
 varying vec4 v_color;
 
 void main()
@@ -55,12 +57,13 @@ def sim2edge(simplices):
     return sim_conv(simplices, 2)
 
 
-# now build our visuals
-class TetFaceVisual(visuals.Visual):
+class TetPlotVisual(visuals.Visual):
     """ template """
 
-    def __init__(self, points, simplices):
-        """ plot 3D
+    def __init__(self, points, simplices, vertex_color=None,
+                 color=None, alpha=1.0,
+                 mode='triangles'):
+        """ initialize tetrahedra face plot
 
         Parameters
         ----------
@@ -69,32 +72,43 @@ class TetFaceVisual(visuals.Visual):
         simplices : NDArray of uint32
             N x 4 connectivity matrix
 
+        Note
+        ----
+        initialize triangles structure
         """
-        visuals.Visual.__init__(self, vertex_shader, fragment_shader)
+        visuals.Visual.__init__(self, vcode=vert, fcode=frag)
 
-        # build Vertices buffer
-        self.V = gloo.VertexBuffer(points)
+        # set data
+        self.shared_program.vert['position'] = gloo.VertexBuffer(points)
+        if vertex_color is None:
+            vertex_color = np.ones((points.shape[0], 4), dtype=np.float32)
+        else:
+            assert(vertex_color.shape[0] == points.shape[0])
+        self.shared_program['a_color'] = vertex_color
 
-        # build index buffer
-        I = sim2tri(simplices)
-        self.I = gloo.IndexBuffer(I)
+        # currently, do not support color parsing
+        if color is None:
+            color = [1.0, 1.0, 1.0, 1.0]
+        else:
+            assert(len(color) == 4)
+        color[-1] *= alpha
+        self.shared_program['u_color'] = color
 
-        # bind data
-        self.shared_program.vert['position'] = self.V
-        self._index_buffer = self.I
+        # build buffer
+        if mode is 'triangles':
+            vbo = sim2tri(simplices)
+        elif mode is 'lines':
+            vbo = sim2edge(simplices)
+        else:
+            raise ValueError('Drawing mode = ' + mode + ' not supported')
+        self._index_buffer = gloo.IndexBuffer(vbo)
 
-        # config color
-        self.shared_program['u_color'] = (1.0, 1.0, 1.0, 1.0)
-        self.shared_program['a_color'] = np.ones((points.shape[0], 4),
-                                                 dtype=np.float32)
-
-        # config
-        self.set_gl_state('translucent',
+        # config OpenGL
+        self.set_gl_state('additive',
                           blend=True,
                           depth_test=False,
-                          polygon_offset_fill=True,
-                          clear_color=(1, 1, 1, 1))
-        self._draw_mode = 'triangles'
+                          polygon_offset_fill=True)
+        self._draw_mode = mode
 
     def _prepare_transforms(self, view):
         """ This method is called when the user or the scenegraph has assigned
@@ -107,87 +121,51 @@ class TetFaceVisual(visuals.Visual):
         view_vert['doc_to_render'] = tr.get_transform('document', 'render')
 
 
-# now build our visuals
-class TetLineVisual(visuals.Visual):
-    """ template """
+def tetplot(points, simplices, vertex_color=None,
+            edge_color=None, alpha=1.0, axis=True):
+    """ main function for tetplot """
+    TetPlot = scene.visuals.create_visual_node(TetPlotVisual)
 
-    def __init__(self, points, simplices):
-        """ plot tetrahedron edges """
-        visuals.Visual.__init__(self, vertex_shader, fragment_shader)
+    # convert data types for OpenGL
+    pts_float32 = points.astype(np.float32)
+    sim_uint32 = simplices.astype(np.uint32)
 
-        # build Vertices buffer
-        self.V = gloo.VertexBuffer(points)
+    # The real-things : plot using scene
+    # build canvas
+    canvas = scene.SceneCanvas(keys='interactive', show=True)
 
-        # build index buffer
-        E = sim2edge(simplices)
-        self.E = gloo.IndexBuffer(E)
+    # Add a ViewBox to let the user zoom/rotate
+    view = canvas.central_widget.add_view()
+    view.camera = 'turntable'
+    view.camera.fov = 50
+    view.camera.distance = 5
 
-        # bind data
-        self.shared_program.vert['position'] = self.V
-        self._index_buffer = self.E
+    # toggle drawing mode
+    TetPlot(pts_float32, sim_uint32, vertex_color,
+            color=None, alpha=alpha, mode='triangles', parent=view.scene)
+    if edge_color is not None:
+        TetPlot(pts_float32, sim_uint32, vertex_color,
+                color=edge_color, alpha=alpha, mode='lines',
+                parent=view.scene)
 
-        # config color
-        self.shared_program['u_color'] = (0.0, 0.0, 0.0, 1.0)
-        self.shared_program['a_color'] = np.ones((points.shape[0], 4),
-                                                 dtype=np.float32)
+    # show axis
+    if axis:
+        scene.visuals.XYZAxis(parent=view.scene)
 
-        # config
-        self.set_gl_state('opaque',
-                          blend=True,
-                          depth_test=False,
-                          polygon_offset_fill=False,
-                          clear_color=(1, 1, 1, 1))
-        self._draw_mode = 'lines'
-
-    def _prepare_transforms(self, view):
-        """ This method is called when the user or the scenegraph has assigned
-        new transforms to this visual """
-        # Note we use the "additive" GL blending settings so that we do not
-        # have to sort the mesh triangles back-to-front before each draw.
-        tr = view.transforms
-        view_vert = view.view_program.vert
-        view_vert['visual_to_doc'] = tr.get_transform('visual', 'document')
-        view_vert['doc_to_render'] = tr.get_transform('document', 'render')
-
-
-# now build our visuals
-class TetPlotVisual(visuals.CompoundVisual):
-    """ compound pcolor and plot """
-
-    def __init__(self, points, simplices):
-        self._faces = TetFaceVisual(points, simplices)
-        self._lines = TetLineVisual(points, simplices)
-        visuals.CompoundVisual.__init__(self, [self._faces, self._lines])
-
-    def set_data(self):
-        pass
-
-
-# build your visuals, that's all
-TetPlot = scene.visuals.create_visual_node(TetPlotVisual)
-
-# The real-things : plot using scene
-# build canvas
-canvas = scene.SceneCanvas(keys='interactive', show=True)
-
-# Add a ViewBox to let the user zoom/rotate
-view = canvas.central_widget.add_view()
-view.camera = 'turntable'
-view.camera.fov = 50
-view.camera.distance = 5
-
-# data
-pts = np.array([(0.0, 0.0, 0.0),
-                (1.0, 0.0, 0.0),
-                (0.0, 1.0, 0.0),
-                (0.0, 0.0, 1.0),
-                (1.0, 1.0, 1.0)], dtype=np.float32)
-
-sim = np.array([(0, 1, 2, 3),
-                (1, 3, 2, 4)], dtype=np.uint32)
-
-# plot ! note the parent parameter
-p1 = TetPlot(pts, sim, parent=view.scene)
+    # run
+    if sys.flags.interactive != 1:
+        app.run()
 
 # run
-app.run()
+if __name__ == '__main__':
+    # data
+    pts = np.array([(0.0, 0.0, 0.0),
+                    (1.0, 0.0, 0.0),
+                    (0.0, 1.0, 0.0),
+                    (0.0, 0.0, 1.0),
+                    (1.0, 1.0, 1.0)], dtype=np.float32)
+
+    sim = np.array([(0, 1, 2, 3),
+                    (1, 3, 2, 4)], dtype=np.uint32)
+
+    tetplot(pts, sim, edge_color=[0.2, 0.2, 1.0, 1.0], alpha=0.1)

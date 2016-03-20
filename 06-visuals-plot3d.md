@@ -4,6 +4,11 @@ The best place to learn `vispy.visuals` is using the demos provided in the `exam
 
 ## 1. Introduction
 
+**Note:** `visuals.LineVisual` support 3D plot. This tutorial will be divided into two parts, one building your own `plot3d` visuals, another would be using existing `LinePlotVisual`.
+
+### 1.1 Using existing `LinePlotVisual`
+
+This might be a easier method,
 
 ## 2. Step-by-step
 
