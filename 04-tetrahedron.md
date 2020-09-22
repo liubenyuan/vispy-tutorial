@@ -55,7 +55,7 @@ void main()
 
 ### 2.1 structural meshes
 
-In this example, we will rendering a rotating tetrahedron (or pyramid). A tetrahedron sonsists of 4 vertices and 4 triangles. Traditionally, in order to render 4 triangles, we need to specify 12 vertices. However, this procedure can be simplified by simply providing the **structure** or the **connectivities** of these triangles.
+In this example, we will rendering a rotating tetrahedron (or pyramid). A tetrahedron consists of 4 vertices and 4 triangles. Traditionally, in order to render 4 triangles, we need to specify 12 vertices. However, this procedure can be simplified by simply providing the **structure** or the **connectivities** of these triangles.
 
 ![tetrahedron.png](figs/tetrahedron.png)
 
