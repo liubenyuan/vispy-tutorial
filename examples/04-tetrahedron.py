@@ -39,7 +39,7 @@ class Canvas(app.Canvas):
         """ initialize the canvas """
         app.Canvas.__init__(self,
                             size=(512, 512),
-                            title='scaling quad',
+                            title='tetrahedron',
                             keys='interactive')
 
         # shader program
