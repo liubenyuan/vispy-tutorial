@@ -37,20 +37,18 @@ void main()
 
 
 class Canvas(app.Canvas):
-    """ build canvas class for this demo """
+    """build canvas class for this demo"""
 
-    def __init__(self, V, C, I, E,
-                 figsize=(512, 512), title='tetplot'):
-        """ initialize the canvas """
-        app.Canvas.__init__(self, size=figsize, title=title,
-                            keys='interactive')
+    def __init__(self, V, C, I, E, figsize=(512, 512), title="tetplot"):
+        """initialize the canvas"""
+        app.Canvas.__init__(self, size=figsize, title=title, keys="interactive")
 
         # shader program
         tet = gloo.Program(vert=vertex, frag=fragment)
 
         # bind to data
-        tet['a_position'] = V
-        tet['a_color'] = C
+        tet["a_position"] = V
+        tet["a_color"] = C
         self.I = gloo.IndexBuffer(I)
         self.E = gloo.IndexBuffer(E)
 
@@ -59,17 +57,17 @@ class Canvas(app.Canvas):
         model = np.eye(4, dtype=np.float32)
         projection = np.eye(4, dtype=np.float32)
 
-        tet['u_model'] = model
-        tet['u_view'] = view
-        tet['u_projection'] = projection
+        tet["u_model"] = model
+        tet["u_view"] = view
+        tet["u_projection"] = projection
 
         # bind your program
         self.program = tet
 
         # config and set viewport
         gloo.set_viewport(0, 0, *self.physical_size)
-        gloo.set_clear_color('white')
-        gloo.set_state('translucent')
+        gloo.set_clear_color("white")
+        gloo.set_state("translucent")
         gloo.set_polygon_offset(0.0, 0.0)
 
         # update parameters
@@ -78,7 +76,7 @@ class Canvas(app.Canvas):
         self.z = 5.0
 
         # bind a timer
-        self.timer = app.Timer('auto', self.on_timer)
+        self.timer = app.Timer("auto", self.on_timer)
         self.timer.start()
 
         # control plots
@@ -88,20 +86,19 @@ class Canvas(app.Canvas):
         self.show()
 
     def on_resize(self, event):
-        """ canvas resize callback """
+        """canvas resize callback"""
         ratio = event.physical_size[0] / float(event.physical_size[1])
-        self.program['u_projection'] = perspective(45.0, ratio, 2.0, 10.0)
+        self.program["u_projection"] = perspective(45.0, ratio, 2.0, 10.0)
         gloo.set_viewport(0, 0, *event.physical_size)
 
     def on_draw(self, event):
-        """ canvas update callback """
+        """canvas update callback"""
         gloo.clear()
 
         # Filled cube
-        gloo.set_state(blend=True, depth_test=False,
-                       polygon_offset_fill=True)
-        self.program['u_color'] = [1.0, 1.0, 1.0, 0.6]
-        self.program.draw('triangles', self.I)
+        gloo.set_state(blend=True, depth_test=False, polygon_offset_fill=True)
+        self.program["u_color"] = [1.0, 1.0, 1.0, 0.6]
+        self.program.draw("triangles", self.I)
 
         # draw outline
         # gloo.set_state(blend=True, depth_test=False,
@@ -115,24 +112,23 @@ class Canvas(app.Canvas):
         self.view(theta=self.theta, phi=self.phi)
 
     def tetplot(self, V, C=None, I=None, E=None):
-        """ plot tetrahedron """
-        self.program['a_position'] = V
-        self.program['a_color'] = C
+        """plot tetrahedron"""
+        self.program["a_position"] = V
+        self.program["a_color"] = C
         self.I = gloo.IndexBuffer(I)
         self.E = gloo.IndexBuffer(E)
         self.update()
 
     def view(self, z=5, theta=0.0, phi=0.0):
-        """ change the zoom factor and view point """
-        self.program['u_view'] = translate((0, 0, -self.z))
-        model = np.dot(rotate(self.theta, (0, 1, 0)),
-                       rotate(self.phi, (0, 0, 1)))
-        self.program['u_model'] = model
+        """change the zoom factor and view point"""
+        self.program["u_view"] = translate((0, 0, -self.z))
+        model = np.dot(rotate(self.theta, (0, 1, 0)), rotate(self.phi, (0, 0, 1)))
+        self.program["u_model"] = model
         self.update()
 
 
 def tetplot(points, simplices):
-    """ main function for tetplot """
+    """main function for tetplot"""
     colors = np.random.rand(points.shape[0], 4)
     colors[:, -1] = 1.0
     colors = colors.astype(np.float32)
@@ -147,32 +143,36 @@ def tetplot(points, simplices):
 
 
 def sim_conv(simplices, N=3):
-    """ simplices to any dimension """
+    """simplices to any dimension"""
     v = [list(combinations(sim, N)) for sim in simplices]
     t = np.sort(np.array(v).reshape(-1, N), axis=1)
     # delete duplicated entries
-    t_unique = np.unique(t.view([('', t.dtype)]*N)).view(np.uint32)
+    t_unique = np.unique(t.view([("", t.dtype)] * N)).view(np.uint32)
     return t_unique
 
 
 def sim2tri(simplices):
-    """ convert simplices of high dimension to indices of triangles """
+    """convert simplices of high dimension to indices of triangles"""
     return sim_conv(simplices, 3)
 
 
 def sim2edge(simplices):
-    """ convert simplices of high dimension to indices of edges """
+    """convert simplices of high dimension to indices of edges"""
     return sim_conv(simplices, 2)
 
 
 if __name__ == "__main__":
-    pts = np.array([(0.0, 0.0, 0.0),
-                    (1.0, 0.0, 0.0),
-                    (0.0, 1.0, 0.0),
-                    (0.0, 0.0, 1.0),
-                    (1.0, 1.0, 1.0)], dtype=np.float32)
+    pts = np.array(
+        [
+            (0.0, 0.0, 0.0),
+            (1.0, 0.0, 0.0),
+            (0.0, 1.0, 0.0),
+            (0.0, 0.0, 1.0),
+            (1.0, 1.0, 1.0),
+        ],
+        dtype=np.float32,
+    )
 
-    sim = np.array([(0, 1, 2, 3),
-                    (1, 3, 2, 4)], dtype=np.uint32)
+    sim = np.array([(0, 1, 2, 3), (1, 3, 2, 4)], dtype=np.uint32)
 
     tetplot(pts, sim)

@@ -7,7 +7,7 @@ import numpy as np
 from vispy import app, gloo
 
 # In order to display a window, we need to create a Canvas.
-c = app.Canvas(size=(800, 400), keys='interactive')
+c = app.Canvas(size=(800, 400), keys="interactive")
 
 # When using vispy.gloo, we need to write shaders.
 # These programs, written in a C-like language called GLSL,
@@ -37,13 +37,11 @@ program = gloo.Program(vert=vertex, frag=fragment)
 
 # 1000x2
 N = 1000
-data = np.c_[
-    np.linspace(-1, 1, N),
-    np.random.uniform(-0.5, +0.5, N)]
+data = np.c_[np.linspace(-1, 1, N), np.random.uniform(-0.5, +0.5, N)]
 print(data.shape)
 
 # gloo needs 32bit
-program['a_position'] = data.astype('float32')
+program["a_position"] = data.astype("float32")
 
 
 @c.connect
@@ -66,7 +64,8 @@ def on_draw(event):
     # (it is necessary to do that at every frame)
     gloo.set_clear_color((1.0, 1.0, 1.0, 1.0))
     gloo.clear()
-    program.draw('line_strip')
+    program.draw("line_strip")
+
 
 # Finally, we show the canvas and we run the application.
 c.show()

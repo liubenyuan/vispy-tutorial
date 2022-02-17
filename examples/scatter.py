@@ -12,11 +12,11 @@ Scatter3D = scene.visuals.create_visual_node(visuals.MarkersVisual)
 
 # The real-things : plot using scene
 # build canvas
-canvas = scene.SceneCanvas(keys='interactive', show=True)
+canvas = scene.SceneCanvas(keys="interactive", show=True)
 
 # Add a ViewBox to let the user zoom/rotate
 view = canvas.central_widget.add_view()
-view.camera = 'turntable'
+view.camera = "turntable"
 view.camera.fov = 45
 view.camera.distance = 500
 
@@ -33,15 +33,16 @@ for i in range(500):
     r = 10.1 - i * 0.02
     radius -= 0.45
     pos[i] = x, y, z
-    colors[i] = (i/500, 1.0-i/500, 0, 0.8)
+    colors[i] = (i / 500, 1.0 - i / 500, 0, 0.8)
 
 # plot ! note the parent parameter
 p1 = Scatter3D(parent=view.scene)
-p1.set_gl_state('translucent', blend=True, depth_test=True)
-p1.set_data(pos, face_color=colors, symbol='o', size=10,
-            edge_width=0.5, edge_color='blue')
+p1.set_gl_state("translucent", blend=True, depth_test=True)
+p1.set_data(
+    pos, face_color=colors, symbol="o", size=10, edge_width=0.5, edge_color="blue"
+)
 
 # run
-if __name__ == '__main__':
+if __name__ == "__main__":
     if sys.flags.interactive != 1:
         app.run()

@@ -63,8 +63,8 @@ void main(void)
 """
 
 
+window = app.Window(width=1024, height=1024, color=(0.75, 0.75, 0.75, 1))
 
-window = app.Window(width=1024, height=1024, color=(.75,.75,.75,1))
 
 @window.event
 def on_draw(dt):
@@ -75,41 +75,43 @@ def on_draw(dt):
 
     # Transparent surfaces
     framebuffer.activate()
-    window.clear(color=(0,0,0,1))
-    gl.glBlendFuncSeparate(gl.GL_ONE,  gl.GL_ONE,
-                           gl.GL_ZERO, gl.GL_ONE_MINUS_SRC_ALPHA)
+    window.clear(color=(0, 0, 0, 1))
+    gl.glBlendFuncSeparate(gl.GL_ONE, gl.GL_ONE, gl.GL_ZERO, gl.GL_ONE_MINUS_SRC_ALPHA)
     teapot.draw(gl.GL_TRIANGLES, indices)
     framebuffer.deactivate()
-    
+
     # Compositing
     gl.glBlendFunc(gl.GL_ONE_MINUS_SRC_ALPHA, gl.GL_SRC_ALPHA)
     gl.glEnable(gl.GL_BLEND)
     post_process.draw(gl.GL_TRIANGLE_STRIP)
 
 
-
-accumulation = np.zeros((window.height,window.width,4),np.float32).view(gloo.TextureFloat2D)
-revealage    = np.zeros((window.height,window.width),np.float32).view(gloo.TextureFloat2D)
-framebuffer  = gloo.FrameBuffer(color=[accumulation,revealage])
+accumulation = np.zeros((window.height, window.width, 4), np.float32).view(
+    gloo.TextureFloat2D
+)
+revealage = np.zeros((window.height, window.width), np.float32).view(
+    gloo.TextureFloat2D
+)
+framebuffer = gloo.FrameBuffer(color=[accumulation, revealage])
 
 
 vertices, indices = primitives.teapot()
 vertices["position"] *= 10
 teapot = gloo.Program(teapot_vert, teapot_frag)
 teapot.bind(vertices)
-teapot['texture'] = data.checkerboard()
+teapot["texture"] = data.checkerboard()
 
 # Post composition
 post_process = gloo.Program(post_process_vert, post_process_frag)
-post_process['tex_accumulation'] = accumulation
-post_process['tex_revealage'] = revealage
-post_process['position']  = [(-1,-1), (-1,1), (1,-1), (1,1)]
+post_process["tex_accumulation"] = accumulation
+post_process["tex_revealage"] = revealage
+post_process["position"] = [(-1, -1), (-1, 1), (1, -1), (1, 1)]
 
 trackball = Trackball(Position("position"), znear=0.1, zfar=100.0, distance=50)
-teapot['transform'] = trackball
+teapot["transform"] = trackball
 trackball.theta = 40
 trackball.phi = 135
 trackball.zoom = 40
 
-window.attach(teapot['transform'])
+window.attach(teapot["transform"])
 app.run()

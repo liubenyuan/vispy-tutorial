@@ -98,80 +98,96 @@ void main(void)
 }
 """
 
-C0 = 0.75, 0.75, 0.75, 1.00 # Background color
-C1 = 1.00, 0.00, 0.00, 0.75 # Red quad color
-C2 = 1.00, 1.00, 0.00, 0.75 # Yellow quad color
-C3 = 0.00, 0.00, 1.00, 0.75 # Blue quad color
+C0 = 0.75, 0.75, 0.75, 1.00  # Background color
+C1 = 1.00, 0.00, 0.00, 0.75  # Red quad color
+C2 = 1.00, 1.00, 0.00, 0.75  # Yellow quad color
+C3 = 0.00, 0.00, 1.00, 0.75  # Blue quad color
 
 # New window with a C0 clear color
 window = app.Window(width=1024, height=1024)
+
 
 @window.event
 def on_draw(dt):
     # Clear depth and color buffers
     gl.glClearColor(*C0)
     gl.glClear(gl.GL_COLOR_BUFFER_BIT | gl.GL_DEPTH_BUFFER_BIT)
-            
+
     # Opaque objects rendering
     gl.glDepthMask(gl.GL_TRUE)
     gl.glDisable(gl.GL_BLEND)
-    
+
     # Transparent objects rendering
     gl.glDepthMask(gl.GL_FALSE)
     gl.glEnable(gl.GL_BLEND)
     framebuffer.activate()
-    gl.glClearColor(0,0,0,1)
+    gl.glClearColor(0, 0, 0, 1)
     gl.glClear(gl.GL_COLOR_BUFFER_BIT)
-    
-    window.clear(color=(0,0,0,1))
-    gl.glBlendFuncSeparate(gl.GL_ONE,  gl.GL_ONE,
-                           gl.GL_ZERO, gl.GL_ONE_MINUS_SRC_ALPHA)
+
+    window.clear(color=(0, 0, 0, 1))
+    gl.glBlendFuncSeparate(gl.GL_ONE, gl.GL_ONE, gl.GL_ZERO, gl.GL_ONE_MINUS_SRC_ALPHA)
     scene.draw(gl.GL_TRIANGLES, indices)
     framebuffer.deactivate()
-    
+
     # Compositing
     gl.glBlendFunc(gl.GL_ONE_MINUS_SRC_ALPHA, gl.GL_SRC_ALPHA)
     compose.draw(gl.GL_TRIANGLE_STRIP)
 
+
 # RGBA32F float texture
-accumulation = np.zeros((window.height,window.width,4),np.float32).view(gloo.TextureFloat2D)
+accumulation = np.zeros((window.height, window.width, 4), np.float32).view(
+    gloo.TextureFloat2D
+)
 
 # R32F float texture
-revealage = np.zeros((window.height,window.width),np.float32).view(gloo.TextureFloat2D)
+revealage = np.zeros((window.height, window.width), np.float32).view(
+    gloo.TextureFloat2D
+)
 
 # Framebuffer with two color targets
-framebuffer = gloo.FrameBuffer(color=[accumulation,revealage])
+framebuffer = gloo.FrameBuffer(color=[accumulation, revealage])
 
 
 # Three 10x10 quads at z=-10,0,+10
 scene = gloo.Program(scene_vert, scene_frag, count=12)
-scene["position"] = [ (-1,-1,-1), (-1,+1,-1), (+1,-1,-1), (+1,+1,-1),
-                      (-1,-1, 0), (-1,+1, 0), (+1,-1, 0), (+1,+1, 0),
-                      (-1,-1,+1), (-1,+1,+1), (+1,-1,+1), (+1,+1,+1) ]
+scene["position"] = [
+    (-1, -1, -1),
+    (-1, +1, -1),
+    (+1, -1, -1),
+    (+1, +1, -1),
+    (-1, -1, 0),
+    (-1, +1, 0),
+    (+1, -1, 0),
+    (+1, +1, 0),
+    (-1, -1, +1),
+    (-1, +1, +1),
+    (+1, -1, +1),
+    (+1, +1, +1),
+]
 scene["position"] *= 10
-scene["color"] = C1,C1,C1,C1, C2,C2,C2,C2, C3,C3,C3,C3
-indices = np.zeros((3,6),dtype=np.uint32)
-indices[0] = 0 + np.array([0,1,2,1,2,3]) 
-indices[1] = 4 + np.array([0,1,2,1,2,3]) 
-indices[2] = 8 + np.array([0,1,2,1,2,3]) 
+scene["color"] = C1, C1, C1, C1, C2, C2, C2, C2, C3, C3, C3, C3
+indices = np.zeros((3, 6), dtype=np.uint32)
+indices[0] = 0 + np.array([0, 1, 2, 1, 2, 3])
+indices[1] = 4 + np.array([0, 1, 2, 1, 2, 3])
+indices[2] = 8 + np.array([0, 1, 2, 1, 2, 3])
 indices = indices.view(gloo.IndexBuffer)
 
 # Post composition
 compose = gloo.Program(compose_vert, compose_frag)
 # Attach textures from the framebuffer
-compose['tex_accumulation'] = accumulation
-compose['tex_revealage']    = revealage
+compose["tex_accumulation"] = accumulation
+compose["tex_revealage"] = revealage
 # Full screen quad
-compose['position']  = [(-1,-1), (-1,1), (1,-1), (1,1)]
+compose["position"] = [(-1, -1), (-1, 1), (1, -1), (1, 1)]
 
 # Glumpy specific code to have a user-controlled trackball Interesting
 # information is the znear/zfar and the distance. This distance is the z
 # translation for the scene, hence quads final z positions are -40,-50,-60
 trackball = Trackball(Position("position"), znear=0.1, zfar=100.0, distance=50)
-scene['transform'] = trackball
-trackball.theta = 40+100
+scene["transform"] = trackball
+trackball.theta = 40 + 100
 trackball.phi = 45
 trackball.zoom = 40
-window.attach(scene['transform'])
+window.attach(scene["transform"])
 
 app.run()

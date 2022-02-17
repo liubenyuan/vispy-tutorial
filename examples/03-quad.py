@@ -29,29 +29,27 @@ void main()
 
 
 class Canvas(app.Canvas):
-    """ build canvas class for this demo """
+    """build canvas class for this demo"""
 
     def __init__(self):
-        app.Canvas.__init__(self, size=(512, 512), title='scaling quad',
-                            keys='interactive')
+        app.Canvas.__init__(
+            self, size=(512, 512), title="scaling quad", keys="interactive"
+        )
 
         # program with 4 vertices
         program = gloo.Program(vert=vertex, frag=fragment, count=4)
 
         # bind data
-        program['a_position'] = [(-1, -1), (-1, 1), (1, -1), (1, 1)]
-        program['color'] = [(1, 0, 0, 1),
-                            (0, 1, 0, 1),
-                            (0, 0, 1, 1),
-                            (1, 1, 0, 1)]
-        program['scale'] = 1.0
+        program["a_position"] = [(-1, -1), (-1, 1), (1, -1), (1, 1)]
+        program["color"] = [(1, 0, 0, 1), (0, 1, 0, 1), (0, 0, 1, 1), (1, 1, 0, 1)]
+        program["scale"] = 1.0
         self.program = program
 
         # set viewport
         gloo.set_viewport(0, 0, *self.physical_size)
 
         # bind a timer
-        self.timer = app.Timer('auto', self.on_timer)
+        self.timer = app.Timer("auto", self.on_timer)
         self.clock = 0.0
         self.timer.start()
 
@@ -60,20 +58,21 @@ class Canvas(app.Canvas):
 
     @staticmethod
     def on_resize(event):
-        """ canvas resize callback """
+        """canvas resize callback"""
         gloo.set_viewport(0, 0, *event.physical_size)
 
     def on_draw(self, event):
-        """ canvas update callback """
-        gloo.set_clear_color('white')
+        """canvas update callback"""
+        gloo.set_clear_color("white")
         gloo.clear()
-        self.program.draw('triangle_strip')
+        self.program.draw("triangle_strip")
 
     def on_timer(self, event):
-        """ canvas time-out callback """
+        """canvas time-out callback"""
         self.clock += 0.01 * np.pi
-        self.program['scale'] = 0.5 + 0.5 * np.cos(self.clock)
+        self.program["scale"] = 0.5 + 0.5 * np.cos(self.clock)
         self.update()
+
 
 # Finally, we show the canvas and we run the application.
 c = Canvas()

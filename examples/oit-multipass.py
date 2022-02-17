@@ -73,7 +73,8 @@ C1 = (1.00, 0.00, 0.00, 0.75)
 C2 = (1.00, 1.00, 0.00, 0.75)
 C3 = (0.00, 0.00, 1.00, 0.75)
 
-window = app.Window(width=512, height=512, color = C0)
+window = app.Window(width=512, height=512, color=C0)
+
 
 @window.event
 def on_draw(dt):
@@ -89,8 +90,8 @@ def on_draw(dt):
     quads["pass"] = 0
     framebuffer.color = accumulation
     framebuffer.activate()
-    gl.glBlendFunc(gl.GL_ONE,  gl.GL_ONE)
-    window.clear(color=(0,0,0,0))
+    gl.glBlendFunc(gl.GL_ONE, gl.GL_ONE)
+    window.clear(color=(0, 0, 0, 0))
     quads.draw(gl.GL_TRIANGLES, indices)
     framebuffer.deactivate()
 
@@ -99,7 +100,7 @@ def on_draw(dt):
     framebuffer.color = revealage
     framebuffer.activate()
     gl.glBlendFunc(gl.GL_ZERO, gl.GL_ONE_MINUS_SRC_COLOR)
-    window.clear(color=(1,1,1,1))
+    window.clear(color=(1, 1, 1, 1))
     quads.draw(gl.GL_TRIANGLES, indices)
     framebuffer.deactivate()
 
@@ -108,35 +109,47 @@ def on_draw(dt):
     post.draw(gl.GL_TRIANGLE_STRIP)
 
 
-
-accumulation = np.zeros((window.height,window.width,4),np.float32).view(gloo.TextureFloat2D)
-revealage = np.zeros((window.height,window.width),np.ubyte).view(gloo.Texture2D)
+accumulation = np.zeros((window.height, window.width, 4), np.float32).view(
+    gloo.TextureFloat2D
+)
+revealage = np.zeros((window.height, window.width), np.ubyte).view(gloo.Texture2D)
 framebuffer = gloo.FrameBuffer(color=[accumulation])
 
 quads = gloo.Program(vert_quads, frag_quads, count=12)
-quads["position"] = [ (-1,-1,-1), (-1,+1,-1), (+1,-1,-1), (+1,+1,-1),
-                      (-1,-1, 0), (-1,+1, 0), (+1,-1, 0), (+1,+1, 0),
-                      (-1,-1,+1), (-1,+1,+1), (+1,-1,+1), (+1,+1,+1) ]
+quads["position"] = [
+    (-1, -1, -1),
+    (-1, +1, -1),
+    (+1, -1, -1),
+    (+1, +1, -1),
+    (-1, -1, 0),
+    (-1, +1, 0),
+    (+1, -1, 0),
+    (+1, +1, 0),
+    (-1, -1, +1),
+    (-1, +1, +1),
+    (+1, -1, +1),
+    (+1, +1, +1),
+]
 quads["position"] *= 10
 
-quads["color"] = C1,C1,C1,C1, C2,C2,C2,C2, C3,C3,C3,C3
-indices = np.zeros((3,6),dtype=np.uint32)
-indices[0] = 0 + np.array([0,1,2,1,2,3])
-indices[1] = 4 + np.array([0,1,2,1,2,3])
-indices[2] = 8 + np.array([0,1,2,1,2,3])
+quads["color"] = C1, C1, C1, C1, C2, C2, C2, C2, C3, C3, C3, C3
+indices = np.zeros((3, 6), dtype=np.uint32)
+indices[0] = 0 + np.array([0, 1, 2, 1, 2, 3])
+indices[1] = 4 + np.array([0, 1, 2, 1, 2, 3])
+indices[2] = 8 + np.array([0, 1, 2, 1, 2, 3])
 indices = indices.view(gloo.IndexBuffer)
 
 # Post composition
 post = gloo.Program(vert_post, frag_post)
-post['tex_accumulation'] = accumulation
-post['tex_revealage']    = revealage
-post['position']  = [(-1,-1), (-1,1), (1,-1), (1,1)]
+post["tex_accumulation"] = accumulation
+post["tex_revealage"] = revealage
+post["position"] = [(-1, -1), (-1, 1), (1, -1), (1, 1)]
 
 trackball = Trackball(Position("position"), znear=0.1, zfar=100.0, distance=50)
-quads['transform'] = trackball
+quads["transform"] = trackball
 trackball.theta = 40
 trackball.phi = 45
 trackball.zoom = 40
-window.attach(quads['transform'])
+window.attach(quads["transform"])
 
 app.run()

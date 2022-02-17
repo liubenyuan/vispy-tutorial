@@ -38,32 +38,38 @@ void main()
 
 
 def sim_conv(simplices, N=3):
-    """ simplices to any dimension """
+    """simplices to any dimension"""
     v = [list(combinations(sim, N)) for sim in simplices]
     # change to (num_of_points x N)
     t = np.sort(np.array(v).reshape(-1, N), axis=1)
     # delete duplicated entries
-    t_unique = np.unique(t.view([('', t.dtype)]*N)).view(np.uint32)
+    t_unique = np.unique(t.view([("", t.dtype)] * N)).view(np.uint32)
     return t_unique
 
 
 def sim2tri(simplices):
-    """ convert simplices of high dimension to indices of triangles """
+    """convert simplices of high dimension to indices of triangles"""
     return sim_conv(simplices, 3)
 
 
 def sim2edge(simplices):
-    """ convert simplices of high dimension to indices of edges """
+    """convert simplices of high dimension to indices of edges"""
     return sim_conv(simplices, 2)
 
 
 class TetPlotVisual(visuals.Visual):
-    """ template """
+    """template"""
 
-    def __init__(self, points, simplices, vertex_color=None,
-                 color=None, alpha=1.0,
-                 mode='triangles'):
-        """ initialize tetrahedra face plot
+    def __init__(
+        self,
+        points,
+        simplices,
+        vertex_color=None,
+        color=None,
+        alpha=1.0,
+        mode="triangles",
+    ):
+        """initialize tetrahedra face plot
 
         Parameters
         ----------
@@ -79,51 +85,51 @@ class TetPlotVisual(visuals.Visual):
         visuals.Visual.__init__(self, vcode=vert, fcode=frag)
 
         # set data
-        self.shared_program.vert['position'] = gloo.VertexBuffer(points)
+        self.shared_program.vert["position"] = gloo.VertexBuffer(points)
         if vertex_color is None:
             vertex_color = np.ones((points.shape[0], 4), dtype=np.float32)
         else:
-            assert(vertex_color.shape[0] == points.shape[0])
-        self.shared_program['a_color'] = vertex_color
+            assert vertex_color.shape[0] == points.shape[0]
+        self.shared_program["a_color"] = vertex_color
 
         # currently, do not support color parsing
         if color is None:
             color = [1.0, 1.0, 1.0, 1.0]
         else:
-            assert(len(color) == 4)
+            assert len(color) == 4
         color[-1] *= alpha
-        self.shared_program['u_color'] = color
+        self.shared_program["u_color"] = color
 
         # build buffer
-        if mode is 'triangles':
+        if mode == "triangles":
             vbo = sim2tri(simplices)
-        elif mode is 'lines':
+        elif mode == "lines":
             vbo = sim2edge(simplices)
         else:
-            raise ValueError('Drawing mode = ' + mode + ' not supported')
+            raise ValueError("Drawing mode = " + mode + " not supported")
         self._index_buffer = gloo.IndexBuffer(vbo)
 
         # config OpenGL
-        self.set_gl_state('additive',
-                          blend=True,
-                          depth_test=False,
-                          polygon_offset_fill=True)
+        self.set_gl_state(
+            "additive", blend=True, depth_test=False, polygon_offset_fill=True
+        )
         self._draw_mode = mode
 
     def _prepare_transforms(self, view):
-        """ This method is called when the user or the scenegraph has assigned
-        new transforms to this visual """
+        """This method is called when the user or the scenegraph has assigned
+        new transforms to this visual"""
         # Note we use the "additive" GL blending settings so that we do not
         # have to sort the mesh triangles back-to-front before each draw.
         tr = view.transforms
         view_vert = view.view_program.vert
-        view_vert['visual_to_doc'] = tr.get_transform('visual', 'document')
-        view_vert['doc_to_render'] = tr.get_transform('document', 'render')
+        view_vert["visual_to_doc"] = tr.get_transform("visual", "document")
+        view_vert["doc_to_render"] = tr.get_transform("document", "render")
 
 
-def tetplot(points, simplices, vertex_color=None,
-            edge_color=None, alpha=1.0, axis=True):
-    """ main function for tetplot """
+def tetplot(
+    points, simplices, vertex_color=None, edge_color=None, alpha=1.0, axis=True
+):
+    """main function for tetplot"""
     TetPlot = scene.visuals.create_visual_node(TetPlotVisual)
 
     # convert data types for OpenGL
@@ -132,21 +138,34 @@ def tetplot(points, simplices, vertex_color=None,
 
     # The real-things : plot using scene
     # build canvas
-    canvas = scene.SceneCanvas(keys='interactive', show=True)
+    canvas = scene.SceneCanvas(keys="interactive", show=True)
 
     # Add a ViewBox to let the user zoom/rotate
     view = canvas.central_widget.add_view()
-    view.camera = 'turntable'
+    view.camera = "turntable"
     view.camera.fov = 50
     view.camera.distance = 5
 
     # toggle drawing mode
-    TetPlot(pts_float32, sim_uint32, vertex_color,
-            color=None, alpha=alpha, mode='triangles', parent=view.scene)
+    TetPlot(
+        pts_float32,
+        sim_uint32,
+        vertex_color,
+        color=None,
+        alpha=alpha,
+        mode="triangles",
+        parent=view.scene,
+    )
     if edge_color is not None:
-        TetPlot(pts_float32, sim_uint32, vertex_color,
-                color=edge_color, alpha=alpha, mode='lines',
-                parent=view.scene)
+        TetPlot(
+            pts_float32,
+            sim_uint32,
+            vertex_color,
+            color=edge_color,
+            alpha=alpha,
+            mode="lines",
+            parent=view.scene,
+        )
 
     # show axis
     if axis:
@@ -156,16 +175,21 @@ def tetplot(points, simplices, vertex_color=None,
     if sys.flags.interactive != 1:
         app.run()
 
-# run
-if __name__ == '__main__':
-    # data
-    pts = np.array([(0.0, 0.0, 0.0),
-                    (1.0, 0.0, 0.0),
-                    (0.0, 1.0, 0.0),
-                    (0.0, 0.0, 1.0),
-                    (1.0, 1.0, 1.0)], dtype=np.float32)
 
-    sim = np.array([(0, 1, 2, 3),
-                    (1, 3, 2, 4)], dtype=np.uint32)
+# run
+if __name__ == "__main__":
+    # data
+    pts = np.array(
+        [
+            (0.0, 0.0, 0.0),
+            (1.0, 0.0, 0.0),
+            (0.0, 1.0, 0.0),
+            (0.0, 0.0, 1.0),
+            (1.0, 1.0, 1.0),
+        ],
+        dtype=np.float32,
+    )
+
+    sim = np.array([(0, 1, 2, 3), (1, 3, 2, 4)], dtype=np.uint32)
 
     tetplot(pts, sim, edge_color=[0.2, 0.2, 1.0, 1.0], alpha=0.1)
